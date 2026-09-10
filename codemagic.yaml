@@ -1,0 +1,247 @@
+workflows:
+  ios-workflow:
+    name: iOS Build and App Store Distribution
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+
+    environment:
+      # Essas 3 variáveis (APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+      # APP_STORE_CONNECT_PRIVATE_KEY) NÃO ficam neste arquivo — configure um grupo
+      # chamado "app_store_credentials" em Codemagic → Team settings → Environment
+      # variable groups, com o toggle "Secret" ativado em cada uma. O valor da chave
+      # privada (.p8) é o CONTEÚDO do arquivo, colado no campo — nunca um arquivo no
+      # repositório.
+      groups:
+        - app_store_credentials
+      vars:
+        BUNDLE_ID: "br.com.therechocolates.chocolateria"
+        XCODE_PROJECT: "build/ios/Chocolateria.xcodeproj"
+        # ⚠️ Confirme o nome exato do .xcodeproj e do scheme depois que o passo
+        # "Export Godot Project to Xcode" rodar com sucesso pela primeira vez (veja o
+        # passo de diagnóstico abaixo) — o Godot pode sanitizar acentos/espaços do
+        # nome do projeto de um jeito que não dá pra prever sem rodar de verdade.
+        XCODE_SCHEME: "Chocolateria"
+
+    scripts:
+      - name: Install Godot Engine
+        script: |
+          set -e  # para o script na hora, no primeiro erro — não deixa continuar escondido
+
+          echo "===== CHECKPOINT 1: baixando o editor ====="
+          curl -fSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_macos.universal.zip
+          echo "===== CHECKPOINT 2: editor baixado, tamanho: ====="
+          ls -la godot.zip
+
+          echo "===== CHECKPOINT 3: extraindo editor ====="
+          unzip -q godot.zip
+          mv Godot.app /Applications/Godot.app
+          ln -sf /Applications/Godot.app/Contents/MacOS/Godot /usr/local/bin/godot
+          echo "===== CHECKPOINT 4: versão instalada: ====="
+          godot --version
+
+          echo "===== CHECKPOINT 5: baixando templates de exportação (arquivo grande, ~900MB, pode demorar alguns minutos) ====="
+          curl -fSL -o templates.tpz https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz
+          echo "===== CHECKPOINT 6: templates baixados, tamanho: ====="
+          ls -la templates.tpz
+
+          echo "===== CHECKPOINT 7: extraindo templates ====="
+          mkdir -p "$HOME/Library/Application Support/Godot/export_templates/4.7.1.stable"
+          unzip -q -o templates.tpz -d /tmp/godot_templates
+          mv /tmp/godot_templates/templates/* "$HOME/Library/Application Support/Godot/export_templates/4.7.1.stable/"
+
+          echo "===== CHECKPOINT 8 (FINAL): templates instalados: ====="
+          ls "$HOME/Library/Application Support/Godot/export_templates/4.7.1.stable/"
+          echo "===== TUDO OK ====="
+
+      - name: Importar assets antes de exportar
+        script: |
+          # O repositório não versiona .godot/ nem os .import (estão no
+          # .gitignore, e com razão: são cache de máquina). Só que exportar
+          # direto num clone limpo pega o projeto com ZERO assets importados
+          # — o build sai sem imagem nenhuma, ou falha com "resource not
+          # found". Esta passada gera o cache antes do export.
+          # Roda duas vezes de propósito: a primeira importa os recursos, a
+          # segunda resolve dependências entre eles (cena que referencia
+          # textura que acabou de ser importada).
+          godot --headless --import . 2>&1 | tail -20 || true
+          godot --headless --import . 2>&1 | tail -20 || true
+          echo "===== Assets importados: ====="
+          ls .godot/imported | wc -l
+
+      - name: Export Godot Project to Xcode
+        script: |
+          echo "===== VERIFICANDO SE OS TEMPLATES EXISTEM ANTES DE EXPORTAR ====="
+          ls -la "$HOME/Library/Application Support/Godot/export_templates/4.7.1.stable/" 2>&1 || echo "!!! A PASTA DE TEMPLATES NÃO EXISTE OU ESTÁ VAZIA !!!"
+          echo "===== FIM DA VERIFICAÇÃO ====="
+          mkdir -p build/ios
+          godot --headless --export-release "iOS" build/ios/Chocolateria.xcodeproj
+
+      - name: Adicionar arquivo de privacidade ao projeto Xcode
+        script: |
+          # A Apple exige um PrivacyInfo.xcprivacy dentro do bundle desde
+          # 2024 — rejeita a submissão sem isso. O export do Godot não gera
+          # esse arquivo sozinho, então injeta aqui via xcodeproj (gem que
+          # já vem instalada junto do CocoaPods nas imagens do Codemagic).
+          PROJECT_DIR=$(dirname "$XCODE_PROJECT")
+          cp ios_privacy/PrivacyInfo.xcprivacy "$PROJECT_DIR/PrivacyInfo.xcprivacy"
+          ruby -e "
+            require 'xcodeproj'
+            project = Xcodeproj::Project.open('$XCODE_PROJECT')
+            target = project.targets.first
+            file_ref = project.main_group.new_reference('PrivacyInfo.xcprivacy')
+            target.resources_build_phase.add_file_reference(file_ref)
+            project.save
+          "
+          echo "===== Confirmando que o arquivo entrou nos recursos do target ====="
+          grep -l "PrivacyInfo" "$XCODE_PROJECT/project.pbxproj" && echo "OK: referenciado no projeto" || echo "!!! NÃO encontrado no projeto — confira manualmente !!!"
+
+      - name: Diagnóstico — lista o que o Godot realmente gerou
+        script: |
+          echo "--- Conteúdo de build/ios/ (confirme o nome real do .xcodeproj) ---"
+          ls -la build/ios/
+          echo "--- Schemes disponíveis no projeto gerado ---"
+          xcodebuild -list -project "$XCODE_PROJECT" || true
+
+      - name: Set up keychain para assinatura
+        script: keychain initialize
+
+      - name: Buscar certificado e perfil de provisionamento automaticamente
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Adicionar certificado ao keychain
+        script: keychain add-certificates
+
+      - name: Aplicar assinatura ao projeto Xcode
+        script: |
+          xcode-project use-profiles \
+            --project "$XCODE_PROJECT"
+
+      - name: Gerar o .ipa assinado
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/**/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      # Descomente e preencha depois que os builds estiverem passando de forma
+      # consistente — publica automaticamente no TestFlight a cada build.
+      # app_store_connect:
+      #   auth: integration
+      #   submit_to_testflight: true
+      email:
+        recipients:
+          - rfirmianosilva@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # =====================================================================
+  # Android — mesma AAB serve pra Play Store no celular E pro Google Play
+  # Games para PC (é o mesmo pacote; o que habilita o PC é ter a
+  # arquitetura x86_64 dentro dele, já ligada no export_presets.cfg).
+  # =====================================================================
+  android-workflow:
+    name: Android Build and Play Store Distribution
+    max_build_duration: 90
+    instance_type: linux_x2
+
+    environment:
+      # Grupo com: CM_KEYSTORE (arquivo .jks codificado em base64),
+      # CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD.
+      # Crie em Codemagic > Team settings > Environment variable groups,
+      # com "Secret" ligado em todas. O .jks NUNCA entra no repositório.
+      groups:
+        - android_keystore
+      vars:
+        GODOT_VERSION: "4.7.1"
+        PACKAGE_NAME: "br.com.therechocolates.chocolateria"
+      java: 17
+
+    scripts:
+      - name: Instalar Godot e templates de exportação
+        script: |
+          set -e
+          curl -fSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+          godot --version
+
+          curl -fSL -o templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          mkdir -p "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          unzip -q -o templates.tpz -d /tmp/godot_templates
+          mv /tmp/godot_templates/templates/* "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/"
+
+      - name: Apontar o Godot pro Android SDK e pro JDK
+        script: |
+          # O Godot procura esses caminhos nas configurações do EDITOR, não
+          # no projeto — num runner de CI não existe editor pra configurar,
+          # então o arquivo é escrito na mão.
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
+          echo "SDK: $ANDROID_SDK_ROOT / JDK: $JAVA_HOME"
+
+      - name: Preparar keystore de assinatura
+        script: |
+          echo "$CM_KEYSTORE" | base64 --decode > /tmp/release.jks
+          # O Godot 4 lê a assinatura de release por variável de ambiente —
+          # não precisa (e não deve) gravar senha em arquivo do projeto.
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=/tmp/release.jks" >> $CM_ENV
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$CM_KEY_ALIAS" >> $CM_ENV
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$CM_KEY_PASSWORD" >> $CM_ENV
+
+      - name: Importar assets
+        script: |
+          godot --headless --import . 2>&1 | tail -20 || true
+          godot --headless --import . 2>&1 | tail -20 || true
+
+      - name: Instalar o build template do Android e liberar teclado/mouse
+        script: |
+          set -e
+          # Necessário porque o preset usa gradle_build (build customizado).
+          godot --headless --install-android-build-template
+
+          # Sem esta linha, a Play Store entende que o jogo EXIGE tela de
+          # toque e não oferece o app no Google Play Games para PC nem em
+          # Chromebook. Era o passo que só dava pra fazer na mão.
+          MANIFEST=android/build/AndroidManifest.xml
+          if ! grep -q "android.hardware.touchscreen" "$MANIFEST"; then
+            sed -i 's|<application|<uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <uses-feature android:name="android.hardware.gamepad" android:required="false" />\n\n    <application|' "$MANIFEST"
+          fi
+          grep -n "uses-feature" "$MANIFEST"
+
+      - name: Exportar AAB assinado
+        script: |
+          mkdir -p build/android
+          godot --headless --export-release "Android" build/android/chocolateria.aab
+          ls -la build/android/
+
+    artifacts:
+      - build/android/*.aab
+      - build/android/*.apk
+
+    publishing:
+      # Descomente depois que o primeiro AAB subir manualmente no Play
+      # Console (a Play só aceita envio automático a partir do 2º build).
+      # google_play:
+      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+      #   track: internal
+      email:
+        recipients:
+          - rfirmianosilva@gmail.com
+        notify:
+          success: true
+          failure: true

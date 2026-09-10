@@ -1,0 +1,59 @@
+# Cache de importação do Godot — é regenerado sozinho a cada abertura do
+# projeto. Commitar isso é uma causa comum de erro de "arquivo corrompido"
+# em CI, porque o cache fica amarrado à máquina/versão que o gerou.
+.godot/
+
+
+# Godot cache
+.godot/
+*.import
+
+# Exports (versões compiladas)
+export/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.exe
+*.pdb
+*.ipa
+*.aab
+build/
+dist/
+
+
+# Arquivos de cache por-arquivo que o Godot gera ao lado de cada asset
+# (ex: cacau.png.import, GameState.gd.uid) — também regenerados sozinhos,
+# não precisam estar no controle de versão.
+*.import
+*.uid
+
+# Builds exportados não deveriam ir pro repositório (ficam pesados e são
+# gerados a cada build)
+build/
+*.ipa
+*.aab
+*.apk
+
+# Arquivos específicos do macOS/Windows que às vezes entram sem querer
+.DS_Store
+Thumbs.db
+
+# Keystore de assinatura do Android e senhas — NUNCA deve ir pro Git.
+# É o equivalente Android dos certificados .p12/.p8 que vazaram durante o
+# processo de configuração do iOS nesse projeto. Gere localmente com
+# keytool e configure só dentro do editor do Godot (Export > Android >
+# Keystore) — nunca cole o caminho/senha num arquivo versionado.
+*.jks
+*.keystore
+keystore.properties
+android_keystore_credentials.txt

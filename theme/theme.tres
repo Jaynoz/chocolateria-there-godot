@@ -1,0 +1,93 @@
+[gd_resource type="Theme" load_steps=14 format=3]
+
+[ext_resource type="Texture2D" path="res://theme/textures/button_normal.png" id="1_btn_n"]
+[ext_resource type="Texture2D" path="res://theme/textures/button_hover.png" id="2_btn_h"]
+[ext_resource type="Texture2D" path="res://theme/textures/button_pressed.png" id="3_btn_p"]
+[ext_resource type="Texture2D" path="res://theme/textures/button_disabled.png" id="4_btn_d"]
+[ext_resource type="Texture2D" path="res://theme/textures/panel_bg.png" id="5_panel"]
+[ext_resource type="Texture2D" path="res://theme/textures/progress_bg.png" id="6_prog_bg"]
+[ext_resource type="Texture2D" path="res://theme/textures/progress_fill.png" id="7_prog_fill"]
+
+[sub_resource type="StyleBoxTexture" id="SBT_ButtonNormal"]
+texture = ExtResource("1_btn_n")
+texture_margin_left = 24.0
+texture_margin_top = 24.0
+texture_margin_right = 24.0
+texture_margin_bottom = 24.0
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="SBT_ButtonHover"]
+texture = ExtResource("2_btn_h")
+texture_margin_left = 24.0
+texture_margin_top = 24.0
+texture_margin_right = 24.0
+texture_margin_bottom = 24.0
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="SBT_ButtonPressed"]
+texture = ExtResource("3_btn_p")
+texture_margin_left = 24.0
+texture_margin_top = 24.0
+texture_margin_right = 24.0
+texture_margin_bottom = 24.0
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="SBT_ButtonDisabled"]
+texture = ExtResource("4_btn_d")
+texture_margin_left = 24.0
+texture_margin_top = 24.0
+texture_margin_right = 24.0
+texture_margin_bottom = 24.0
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="SBT_Panel"]
+texture = ExtResource("5_panel")
+texture_margin_left = 32.0
+texture_margin_top = 32.0
+texture_margin_right = 32.0
+texture_margin_bottom = 32.0
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="SBT_ProgressBg"]
+texture = ExtResource("6_prog_bg")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="SBT_ProgressFill"]
+texture = ExtResource("7_prog_fill")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+
+[resource]
+Button/styles/normal = SubResource("SBT_ButtonNormal")
+Button/styles/hover = SubResource("SBT_ButtonHover")
+Button/styles/pressed = SubResource("SBT_ButtonPressed")
+Button/styles/disabled = SubResource("SBT_ButtonDisabled")
+Button/colors/font_color = Color(1, 1, 1, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(1, 1, 1, 1)
+Button/colors/font_disabled_color = Color(0.827451, 0.749020, 0.835294, 0.6)
+Panel/styles/panel = SubResource("SBT_Panel")
+PanelContainer/styles/panel = SubResource("SBT_Panel")
+Label/colors/font_color = Color(0.980392, 0.972549, 0.850980, 1)
+ProgressBar/styles/background = SubResource("SBT_ProgressBg")
+ProgressBar/styles/fill = SubResource("SBT_ProgressFill")

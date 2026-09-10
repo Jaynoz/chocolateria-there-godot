@@ -1,0 +1,22 @@
+# Sem isso, o Git no Windows costuma converter finais de linha (CRLF) em
+# TODO arquivo que ele acha que é "texto" — incluindo, às vezes, binários
+# como PNG, se o `core.autocrlf` estiver ligado. Isso corrompe a imagem
+# byte a byte sem avisar, e é a causa mais comum do erro
+# "ERR_FILE_CORRUPT" / "Not a PNG file" que apareceu no build do
+# Codemagic. Este arquivo força o Git a tratar esses tipos como binário
+# puro, sem tocar em nenhum byte.
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.tres text eol=lf
+*.tscn text eol=lf
+*.gd text eol=lf
+project.godot text eol=lf
+export_presets.cfg text eol=lf
