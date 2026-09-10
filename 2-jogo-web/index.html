@@ -116,18 +116,42 @@
   }
 
   @media (max-width:600px){
-    .envoltorio{padding-inline:14px;}
-    header{padding-block:18px 10px;}
-    /* moldura ocupa a largura inteira da tela, sem margem lateral */
+    /* No celular o jogo sobe para logo abaixo do título; os anúncios
+       e o texto ficam depois dele. */
+    .envoltorio{
+      padding-inline:14px;
+      display:flex;
+      flex-direction:column;
+    }
+    header{padding-block:16px 8px;order:1;}
+    .moldura-jogo{order:2;}
+    #anuncio-topo{order:3;}
+    article{order:4;}
+    #anuncio-baixo{order:5;}
+    footer{order:6;}
+
+    /* A moldura sangra até as bordas da tela. O iframe é desenhado com
+       420px de largura — a largura em que o jogo se desenha — e depois
+       reduzido por transform até caber. Assim o jogo nunca é limitado
+       pela altura e preenche a tela inteira na horizontal. */
     .moldura-jogo{
-      height:90vh;
-      height:90dvh;
-      min-height:520px;
+      position:relative;
+      overflow:hidden;
+      height:auto;
+      min-height:320px;
       max-height:none;
       margin-inline:-14px;
       border-radius:0;
       border-left:0;
       border-right:0;
+    }
+    .moldura-jogo iframe{
+      position:absolute;
+      top:0;
+      left:0;
+      width:420px;
+      height:1056px;
+      transform-origin:top left;
     }
     .anuncio{min-height:60px;margin-block:12px;}
   }
@@ -144,7 +168,7 @@
 
   <!-- ANÚNCIO DO TOPO -->
   <!-- TROCAR data-ad-slot pelo número real da unidade criada no AdSense -->
-  <div class="anuncio">
+  <div class="anuncio" id="anuncio-topo">
     <small>Publicidade</small>
     <ins class="adsbygoogle"
          style="display:block"
@@ -155,13 +179,13 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
-  <div class="moldura-jogo">
-    <iframe src="game.html" title="Chocolateria Therê — jogo" allow="autoplay"></iframe>
+  <div class="moldura-jogo" id="moldura">
+    <iframe id="jogo" src="game.html" title="Chocolateria Therê — jogo" allow="autoplay"></iframe>
   </div>
 
   <!-- ANÚNCIO ABAIXO DO JOGO -->
   <!-- TROCAR data-ad-slot pelo número real da segunda unidade criada no AdSense -->
-  <div class="anuncio">
+  <div class="anuncio" id="anuncio-baixo">
     <small>Publicidade</small>
     <ins class="adsbygoogle"
          style="display:block"
@@ -242,6 +266,114 @@
   </footer>
 
 </div>
+
+<script>
+/* Ajuste do tamanho do jogo no celular.
+   O jogo se desenha sempre com 420px de largura e calcula a própria
+   escala como o MENOR valor entre (largura da janela / 420) e
+   (altura da janela / altura do jogo). Como ele é bem mais alto do que
+   largo, num celular quem manda é a altura: ele encolhe e sobra faixa
+   preta dos lados.
+   A saída é dar ao iframe exatamente as medidas naturais do jogo
+   (420 x altura do conteúdo). Aí as duas divisões dão 1, o jogo se
+   desenha em tamanho cheio, e a página reduz o iframe inteiro por
+   transform até a largura da tela. Resultado: nenhuma faixa preta. */
+(function(){
+  var BASE = 420;
+  var ALTURA_PADRAO = 1056;
+  var moldura = document.getElementById('moldura');
+  var jogoFrame = document.getElementById('jogo');
+  if (!moldura || !jogoFrame) return;
+
+  var observando = false, ultAlt = 0, ultLarg = 0;
+
+  function noCelular(){ return window.matchMedia('(max-width:600px)').matches; }
+
+  /* O jogo tem min-height:100vh, o que prende a altura dele à altura do
+     iframe e torna a medição circular. Neutralizamos isso só no celular. */
+  function estiloInterno(ativar){
+    try{
+      var doc = jogoFrame.contentDocument;
+      if (!doc || !doc.head) return;
+      var st = doc.getElementById('ajuste-moldura');
+      if (ativar && !st){
+        st = doc.createElement('style');
+        st.id = 'ajuste-moldura';
+        st.textContent = '#game{min-height:0 !important}';
+        doc.head.appendChild(st);
+      } else if (!ativar && st){
+        st.parentNode.removeChild(st);
+      }
+    }catch(e){}
+  }
+
+  function refazerAjusteInterno(){
+    try{
+      if (typeof jogoFrame.contentWindow.applyFit === 'function'){
+        jogoFrame.contentWindow.applyFit();
+      }
+    }catch(e){}
+  }
+
+  function ajustar(){
+    if (!noCelular()){
+      estiloInterno(false);
+      jogoFrame.style.width = '';
+      jogoFrame.style.height = '';
+      jogoFrame.style.transform = '';
+      moldura.style.height = '';
+      ultAlt = ultLarg = 0;
+      refazerAjusteInterno();
+      return;
+    }
+
+    estiloInterno(true);
+
+    var larg = moldura.clientWidth;
+    if (!larg) return;
+
+    var alt = ALTURA_PADRAO;
+    try{
+      var el = jogoFrame.contentDocument.getElementById('game');
+      if (el && el.scrollHeight) alt = el.scrollHeight;
+    }catch(e){}
+
+    if (Math.abs(alt - ultAlt) < 2 && Math.abs(larg - ultLarg) < 2) return;
+    ultAlt = alt; ultLarg = larg;
+
+    var escala = larg / BASE;
+    jogoFrame.style.width = BASE + 'px';
+    jogoFrame.style.height = alt + 'px';
+    jogoFrame.style.transform = 'scale(' + escala + ')';
+    moldura.style.height = Math.round(alt * escala) + 'px';
+    refazerAjusteInterno();
+  }
+
+  /* A altura do conteúdo muda durante a partida (fala do mascote, painel
+     de prestígio, pedidos), então acompanhamos em vez de medir uma vez. */
+  function acompanhar(){
+    try{
+      var el = jogoFrame.contentDocument.getElementById('game');
+      if (el && !observando && window.ResizeObserver){
+        observando = true;
+        new ResizeObserver(function(){ ajustar(); }).observe(el);
+      }
+    }catch(e){}
+    ajustar();
+  }
+
+  jogoFrame.addEventListener('load', function(){
+    acompanhar();
+    setTimeout(acompanhar, 400);
+    setTimeout(acompanhar, 1500);
+  });
+  window.addEventListener('resize', ajustar);
+  window.addEventListener('orientationchange', function(){ setTimeout(ajustar, 250); });
+  try{
+    if (jogoFrame.contentDocument && jogoFrame.contentDocument.readyState === 'complete') acompanhar();
+  }catch(e){}
+})();
+</script>
 
 </body>
 </html>
