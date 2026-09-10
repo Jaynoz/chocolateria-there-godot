@@ -72,6 +72,7 @@
     border-radius:12px;
     overflow:hidden;
     height:80vh;
+    height:80dvh;
     min-height:520px;
     max-height:820px;
   }
@@ -115,8 +116,20 @@
   }
 
   @media (max-width:600px){
-    .moldura-jogo{height:74vh;min-height:460px;}
-    .envoltorio{padding-inline:16px;}
+    .envoltorio{padding-inline:14px;}
+    header{padding-block:18px 10px;}
+    /* moldura ocupa a largura inteira da tela, sem margem lateral */
+    .moldura-jogo{
+      height:90vh;
+      height:90dvh;
+      min-height:520px;
+      max-height:none;
+      margin-inline:-14px;
+      border-radius:0;
+      border-left:0;
+      border-right:0;
+    }
+    .anuncio{min-height:60px;margin-block:12px;}
   }
 </style>
 </head>
