@@ -1,42 +1,234 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chocolateria TherÃª</title>
-    
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6623934856856600"
-         crossorigin="anonymous"></script>
-    
-    <style>
-        * { margin: 0; padding: 0; }
-        body { background: #000; font-family: Arial, sans-serif; }
-        .container { width: 100%; height: 100vh; display: flex; flex-direction: column; }
-        .ads-top { background: #1a1a1a; padding: 10px; text-align: center; min-height: 100px; }
-        .game-container { flex: 1; }
-        iframe { width: 100%; height: 100%; border: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chocolateria Therê — jogo de fazer chocolate online e grátis</title>
+<meta name="description" content="Junte cacau, transforme em chocolate e encha os cinco mostruários do supermercado. Jogo incremental gratuito, direto no navegador, sem instalar nada.">
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6623934856856600" crossorigin="anonymous"></script>
+
+<style>
+  :root{
+    --fundo:#241209;
+    --cartao:#33190d;
+    --cartao-borda:#4a2716;
+    --texto:#f3e3d3;
+    --texto-suave:#c6a68c;
+    --destaque:#e0a869;
+    --barra:#1a0c05;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--fundo);
+    color:var(--texto);
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;
+  }
+  .envoltorio{
+    max-width:940px;
+    margin:0 auto;
+    padding-inline:20px;
+  }
+  header{
+    text-align:center;
+    padding-block:28px 18px;
+  }
+  header h1{
+    margin:0 0 6px;
+    font-size:clamp(1.6rem,5vw,2.4rem);
+    color:var(--destaque);
+    letter-spacing:.5px;
+  }
+  header p{
+    margin:0;
+    color:var(--texto-suave);
+    font-size:clamp(.95rem,2.6vw,1.1rem);
+  }
+
+  .anuncio{
+    background:var(--barra);
+    border:1px solid var(--cartao-borda);
+    border-radius:10px;
+    padding:10px;
+    margin-block:18px;
+    min-height:100px;
+    text-align:center;
+    overflow:hidden;
+  }
+  .anuncio small{
+    display:block;
+    color:#6d5544;
+    font-size:.7rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+
+  .moldura-jogo{
+    background:#000;
+    border:1px solid var(--cartao-borda);
+    border-radius:12px;
+    overflow:hidden;
+    height:80vh;
+    min-height:520px;
+    max-height:820px;
+  }
+  .moldura-jogo iframe{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+  }
+
+  article{padding-bottom:10px;}
+  article h2{
+    color:var(--destaque);
+    font-size:clamp(1.25rem,3.5vw,1.55rem);
+    margin-top:38px;
+    margin-bottom:10px;
+  }
+  article h3{
+    font-size:1.05rem;
+    margin-top:22px;
+    margin-bottom:4px;
+    color:#f0c79a;
+  }
+  article p{margin:0 0 14px;}
+
+  .cartao{
+    background:var(--cartao);
+    border:1px solid var(--cartao-borda);
+    border-radius:12px;
+    padding:20px 22px;
+    margin-block:22px;
+  }
+
+  footer{
+    border-top:1px solid var(--cartao-borda);
+    margin-top:40px;
+    padding-block:22px 34px;
+    text-align:center;
+    color:var(--texto-suave);
+    font-size:.9rem;
+  }
+
+  @media (max-width:600px){
+    .moldura-jogo{height:74vh;min-height:460px;}
+    .envoltorio{padding-inline:16px;}
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- AnÃºncio no topo -->
-        <div class="ads-top">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-6623934856856600"
-                 data-ad-slot="1234567890"
-                 data-ad-format="horizontal"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-        
-        <!-- Jogo -->
-        <div class="game-container">
-            <iframe src="game.html"></iframe>
-        </div>
+
+<div class="envoltorio">
+
+  <header>
+    <h1>Chocolateria Therê</h1>
+    <p>Junte cacau, transforme em chocolate e encha os cinco mostruários do supermercado.</p>
+  </header>
+
+  <!-- ANÚNCIO DO TOPO -->
+  <!-- TROCAR data-ad-slot pelo número real da unidade criada no AdSense -->
+  <div class="anuncio">
+    <small>Publicidade</small>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-6623934856856600"
+         data-ad-slot="1234567890"
+         data-ad-format="horizontal"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <div class="moldura-jogo">
+    <iframe src="game.html" title="Chocolateria Therê — jogo" allow="autoplay"></iframe>
+  </div>
+
+  <!-- ANÚNCIO ABAIXO DO JOGO -->
+  <!-- TROCAR data-ad-slot pelo número real da segunda unidade criada no AdSense -->
+  <div class="anuncio">
+    <small>Publicidade</small>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-6623934856856600"
+         data-ad-slot="0987654321"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <article>
+
+    <h2>O que é a Chocolateria Therê</h2>
+    <p>A Chocolateria Therê é um jogo incremental de fazer chocolate. Você começa com uma bancada vazia e a companhia do Estopa, que te recebe com um convite simples: vamos fazer chocolate. A partir daí, tudo depende de quanto cacau você consegue produzir e de como transforma esse cacau em barras prontas para vender.</p>
+    <p>O objetivo é encher os cinco mostruários do supermercado. Cada mostruário preenchido representa um degrau na operação: mais produtos expostos, mais vendas, mais dinheiro entrando para reinvestir na produção. Quando os cinco estão completos, o jogo anuncia que a coleção acabou — e aí a graça passa a ser refazer o percurso mais rápido do que da primeira vez.</p>
+    <p>Não há instalação, cadastro nem download. O jogo roda direto no navegador, no celular ou no computador, e é gratuito.</p>
+
+    <div class="cartao">
+      <h2 style="margin-top:0">Como jogar</h2>
+
+      <h3>1. Produza cacau</h3>
+      <p>O botão de produzir cacau é o motor de tudo. No começo, cada toque rende pouco e a produção por segundo fica em zero — é normal. Esse é o único recurso que existe antes de qualquer melhoria, e ele é a matéria-prima de todo o resto.</p>
+
+      <h3>2. Junte o cacau em chocolate</h3>
+      <p>Cacau sozinho não vende. Ao acumular quantidade suficiente, você junta as unidades e elas viram chocolate pronto — é a mecânica de merge que dá nome ao gênero. Quanto mais você junta, mais valiosos ficam os produtos que saem da bancada.</p>
+
+      <h3>3. Encha os mostruários</h3>
+      <p>Os chocolates produzidos vão para os mostruários do supermercado. São cinco no total, e eles se enchem em sequência. Acompanhar o preenchimento é a forma mais direta de medir seu progresso: enquanto os primeiros enchem rápido, os últimos exigem uma produção bem mais robusta.</p>
     </div>
+
+    <h2>Moedas e gemas</h2>
+    <p>O jogo trabalha com duas moedas. As moedas comuns entram com as vendas e são o que você gasta no dia a dia, principalmente nas melhorias. As gemas são o recurso escasso, acumulado mais devagar, e servem para os avanços que fazem diferença de verdade na velocidade da operação.</p>
+    <p>A decisão interessante é quando parar de acumular e começar a gastar. Guardar demais trava o crescimento; gastar cedo demais em melhorias baratas atrasa as caras.</p>
+
+    <h2>As três melhorias</h2>
+    <p>Existem três linhas de melhoria, e elas resolvem problemas diferentes.</p>
+    <p><strong>Velocidade</strong> acelera o ritmo da produção. É a melhoria que mais se sente nos primeiros minutos, porque encurta a espera entre um lote e outro.</p>
+    <p><strong>Renda</strong> aumenta quanto cada produto vale na venda. Rende pouco no começo, quando o volume é baixo, e muito depois, quando a bancada já está girando sozinha.</p>
+    <p><strong>Ajudante</strong> mantém a produção rodando sem que você precise tocar na tela. É o que transforma o jogo de clicker em incremental de verdade, e o que faz seu saldo crescer enquanto você está fazendo outra coisa.</p>
+    <p>A ordem em que você investe nessas três muda bastante o ritmo da partida. Um caminho comum é priorizar Velocidade no início, migrar para Ajudante assim que ele fica acessível, e deixar Renda para quando o volume já justificar.</p>
+
+    <h2>Recomeçar do zero</h2>
+    <p>Como em outros jogos do gênero, existe a opção de recomeçar a produção. Zerar o progresso parece contraintuitivo, mas é assim que jogos incrementais funcionam: o reinício vem acompanhado de vantagens que tornam a nova partida mais rápida que a anterior. Se você travou num ponto em que tudo demora, recomeçar costuma ser o caminho mais curto para destravar.</p>
+
+    <h2>Bônus por anúncio</h2>
+    <p>O jogo oferece um bônus opcional: assistir a um anúncio curto dobra seus ganhos por trinta segundos. É totalmente opcional e existe também a opção de remover os anúncios do jogo. Nada no progresso depende de assistir — o bônus só encurta a espera de quem quiser.</p>
+
+    <h2>Idiomas e configurações</h2>
+    <p>A Chocolateria Therê está disponível em português do Brasil, espanhol e inglês, com uma opção automática que segue o idioma do seu aparelho. Nas configurações também dá para desligar o som, escolher entre o modo de tela de celular ou de computador — ou deixar no automático — e zerar o progresso, se quiser começar limpo.</p>
+
+    <div class="cartao">
+      <h2 style="margin-top:0">Perguntas frequentes</h2>
+
+      <h3>Precisa instalar alguma coisa?</h3>
+      <p>Não. O jogo roda no navegador. Basta abrir esta página.</p>
+
+      <h3>É gratuito?</h3>
+      <p>Sim, a versão web é gratuita e completa.</p>
+
+      <h3>Funciona no celular?</h3>
+      <p>Funciona. Existe inclusive um modo de tela pensado para telas de celular, além do modo automático.</p>
+
+      <h3>Meu progresso fica salvo?</h3>
+      <p>O progresso é guardado no próprio navegador. Se você limpar os dados do navegador, usar uma janela anônima ou trocar de aparelho, vai começar do zero — e há também uma opção de zerar o progresso de propósito nas configurações.</p>
+
+      <h3>Preciso criar conta?</h3>
+      <p>Não há cadastro nem login.</p>
+    </div>
+
+    <h2>Sobre a Therê Chocolates</h2>
+    <p>A Chocolateria Therê é um jogo da Therê Chocolates. A ideia por trás dele é simples: transformar o processo de fazer e vender chocolate em algo que dê para acompanhar na palma da mão, com o ritmo tranquilo de um jogo incremental em vez da pressa de um jogo de ação.</p>
+    <p>Se quiser falar sobre o jogo, relatar um problema ou sugerir alguma coisa, entre em contato pelos canais da Therê Chocolates.</p>
+
+  </article>
+
+  <footer>
+    © Therê Chocolates — Chocolateria Therê
+  </footer>
+
+</div>
+
 </body>
 </html>
